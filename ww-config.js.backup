@@ -1,0 +1,18 @@
+export default {
+  editor: {
+    label: {
+      en: "Calendar Hour",
+      pt: "Calendário de Horas",
+    },
+  },
+  properties: {
+    textColor: {
+      label: {
+        en: "Text color",
+        pt: "Cor do texto",
+      },
+      type: "Color",
+      defaultValue: "#333333",
+    },
+  },
+};
