@@ -128,6 +128,45 @@ export default {
       bindable: true,
     },
 
+    labelFromText: {
+      label: {
+        en: "From Text Label",
+        pt: "Label Texto 'De'",
+      },
+      type: "Text",
+      section: "settings",
+      defaultValue: "from",
+      bindable: true,
+      /* wwEditor:start */
+      propertyHelp: {
+        en: "Text displayed between start and end dates (e.g., '10/11/2025 from 09:00 to 10:00')",
+        pt: "Texto exibido entre as datas inicial e final (ex: '10/11/2025 de 09:00 até 10:00')",
+      },
+      /* wwEditor:end */
+    },
+
+    labelTimePickerConfirm: {
+      label: {
+        en: "Time Picker Confirm Label",
+        pt: "Label Confirmar Time Picker",
+      },
+      type: "Text",
+      section: "settings",
+      defaultValue: "Confirm",
+      bindable: true,
+    },
+
+    labelTimePickerClose: {
+      label: {
+        en: "Time Picker Close Label",
+        pt: "Label Fechar Time Picker",
+      },
+      type: "Text",
+      section: "settings",
+      defaultValue: "Close",
+      bindable: true,
+    },
+
     placeholder: {
       label: {
         en: "Placeholder Text",

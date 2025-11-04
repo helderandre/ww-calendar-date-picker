@@ -130,16 +130,18 @@
           <div class="datetime-inputs">
             <!-- Start Date/Time -->
             <div class="datetime-input-group">
-              <label class="datetime-label" :style="labelStyle">
-                {{ props.content?.labelStartDate || 'Start date*' }}
-              </label>
-              <div class="datetime-input-row">
+              <div class="datetime-label-row">
+                <label class="datetime-label" :style="labelStyle">
+                  {{ props.content?.labelStartDate || 'Start date*' }}
+                </label>
                 <span class="datetime-text" :style="dateTextStyle">
                   {{ formattedStartDate }}
                 </span>
-                
-                <!-- Time Input with Dropdown -->
-                <div class="time-input-wrapper">
+              </div>
+              
+              <!-- Time Input with Dropdown -->
+              <div class="datetime-input-row">
+                <div class="time-input-wrapper full-width">
                   <button
                     type="button"
                     class="time-input-button"
@@ -157,7 +159,7 @@
                     v-if="isStartTimePickerOpen"
                     ref="startTimePickerRef"
                     class="time-picker-dropdown"
-                    :style="timeContainerStyle"
+                    :style="{ ...timeContainerStyle, ...timePickerDropdownStyle }"
                   >
                     <div class="time-column">
                       <label class="time-column-label" :style="spinboxLabelStyle">
@@ -198,6 +200,33 @@
                         </button>
                       </div>
                     </div>
+                    
+                    <!-- Time Picker Actions -->
+                    <div class="time-picker-actions">
+                      <button
+                        type="button"
+                        class="time-picker-btn time-picker-btn-close"
+                        :style="timePickerCloseButtonStyle"
+                        @click="closeStartTimePicker"
+                        :title="props.content?.labelTimePickerClose || 'Close'"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="time-picker-btn time-picker-btn-confirm"
+                        :style="timePickerConfirmButtonStyle"
+                        @click="confirmStartTimePicker"
+                        :title="props.content?.labelTimePickerConfirm || 'Confirm'"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -205,16 +234,18 @@
 
             <!-- End Date/Time -->
             <div class="datetime-input-group">
-              <label class="datetime-label" :style="labelStyle">
-                {{ isRangeMode ? (props.content?.labelEndDate || 'End date*') : 'End time*' }}
-              </label>
-              <div class="datetime-input-row">
+              <div class="datetime-label-row">
+                <label class="datetime-label" :style="labelStyle">
+                  {{ isRangeMode ? (props.content?.labelEndDate || 'End date*') : 'End time*' }}
+                </label>
                 <span v-if="isRangeMode" class="datetime-text" :style="dateTextStyle">
                   {{ formattedEndDate }}
                 </span>
-                
-                <!-- Time Input with Dropdown -->
-                <div class="time-input-wrapper" :class="{ 'full-width': !isRangeMode }">
+              </div>
+              
+              <!-- Time Input with Dropdown -->
+              <div class="datetime-input-row">
+                <div class="time-input-wrapper full-width">
                   <button
                     type="button"
                     class="time-input-button"
@@ -232,7 +263,7 @@
                     v-if="isEndTimePickerOpen"
                     ref="endTimePickerRef"
                     class="time-picker-dropdown"
-                    :style="timeContainerStyle"
+                    :style="{ ...timeContainerStyle, ...timePickerDropdownStyle }"
                   >
                     <div class="time-column">
                       <label class="time-column-label" :style="spinboxLabelStyle">
@@ -280,6 +311,33 @@
                           {{ minute.label }}
                         </button>
                       </div>
+                    </div>
+                    
+                    <!-- Time Picker Actions -->
+                    <div class="time-picker-actions">
+                      <button
+                        type="button"
+                        class="time-picker-btn time-picker-btn-close"
+                        :style="timePickerCloseButtonStyle"
+                        @click="closeEndTimePicker"
+                        :title="props.content?.labelTimePickerClose || 'Close'"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="time-picker-btn time-picker-btn-confirm"
+                        :style="timePickerConfirmButtonStyle"
+                        @click="confirmEndTimePicker"
+                        :title="props.content?.labelTimePickerConfirm || 'Confirm'"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -586,6 +644,7 @@ const displayText = computed(() => {
   // Always show both start and end time
   const startTimeFormatted = formatTime(startTime.value);
   const endTimeFormatted = formatTime(endTime.value);
+  const fromText = props.content?.labelFromText || 'from';
 
   if (isRangeMode.value && selectedEndDate.value) {
     const startDate = formatDate(selectedStartDate.value);
@@ -593,11 +652,11 @@ const displayText = computed(() => {
       ? selectedEndDate.value.getDate()
       : formatDate(selectedEndDate.value);
 
-    return `${startDate} - ${endDate}, from ${startTimeFormatted} - ${endTimeFormatted}`;
+    return `${startDate} - ${endDate}, ${fromText} ${startTimeFormatted} - ${endTimeFormatted}`;
   } else {
     // Single mode: show single date with time range
     const dateStr = formatDate(selectedStartDate.value);
-    return `${dateStr}, from ${startTimeFormatted} - ${endTimeFormatted}`;
+    return `${dateStr}, ${fromText} ${startTimeFormatted} - ${endTimeFormatted}`;
   }
 });
 
@@ -628,6 +687,7 @@ const summaryText = computed(() => {
   // Always show both start and end time
   const startTimeFormatted = formatTime(tempStartTime.value);
   const endTimeFormatted = formatTime(tempEndTime.value);
+  const fromText = props.content?.labelFromText || 'from';
 
   if (isRangeMode.value && tempEndDate.value) {
     const startDate = formatDate(tempStartDate.value);
@@ -635,11 +695,11 @@ const summaryText = computed(() => {
       ? tempEndDate.value.getDate()
       : formatDate(tempEndDate.value);
 
-    return `${startDate} - ${endDate}, from ${startTimeFormatted} - ${endTimeFormatted}`;
+    return `${startDate} - ${endDate}, ${fromText} ${startTimeFormatted} - ${endTimeFormatted}`;
   } else {
     // Single mode: show single date with time range
     const dateStr = formatDate(tempStartDate.value);
-    return `${dateStr}, from ${startTimeFormatted} - ${endTimeFormatted}`;
+    return `${dateStr}, ${fromText} ${startTimeFormatted} - ${endTimeFormatted}`;
   }
 });
 
@@ -773,6 +833,31 @@ const timeColumnScrollStyle = computed(() => ({
   borderColor: props.content?.spinboxBorderColor || '#e5e7eb',
   borderRadius: props.content?.spinboxBorderRadius || '8px',
 }));
+
+const timePickerConfirmButtonStyle = computed(() => ({
+  backgroundColor: props.content?.buttonPrimaryBgColor || '#4f46e5',
+  color: props.content?.buttonPrimaryTextColor || '#ffffff',
+  borderRadius: props.content?.buttonBorderRadius || '6px',
+}));
+
+const timePickerCloseButtonStyle = computed(() => ({
+  backgroundColor: props.content?.buttonSecondaryBgColor || 'transparent',
+  color: props.content?.buttonSecondaryTextColor || '#6b7280',
+  borderColor: props.content?.buttonSecondaryBorderColor || '#d1d5db',
+  borderRadius: props.content?.buttonBorderRadius || '6px',
+}));
+
+const timePickerDropdownStyle = computed(() => {
+  // Use the same padding as dropdown to align properly
+  const dropdownPadding = props.content?.dropdownPadding || '24px';
+  
+  return {
+    left: dropdownPadding,
+    right: dropdownPadding,
+    width: `calc(100% - ${dropdownPadding} - ${dropdownPadding})`,
+    minWidth: `calc(100% - ${dropdownPadding} - ${dropdownPadding})`,
+  };
+});
 
 const getTimeOptionStyle = (isSelected, isDisabled = false) => {
   if (isDisabled) {
@@ -1035,6 +1120,32 @@ const toggleEndTimePicker = () => {
     endTimeHourSelected.value = false;
     endTimeMinuteSelected.value = false;
   }
+};
+
+const closeStartTimePicker = () => {
+  isStartTimePickerOpen.value = false;
+  startTimeHourSelected.value = false;
+  startTimeMinuteSelected.value = false;
+};
+
+const closeEndTimePicker = () => {
+  isEndTimePickerOpen.value = false;
+  endTimeHourSelected.value = false;
+  endTimeMinuteSelected.value = false;
+};
+
+const confirmStartTimePicker = () => {
+  // Force close regardless of selection state
+  isStartTimePickerOpen.value = false;
+  startTimeHourSelected.value = false;
+  startTimeMinuteSelected.value = false;
+};
+
+const confirmEndTimePicker = () => {
+  // Force close regardless of selection state
+  isEndTimePickerOpen.value = false;
+  endTimeHourSelected.value = false;
+  endTimeMinuteSelected.value = false;
 };
 
 const selectStartTime = (hour, minute) => {
@@ -1305,6 +1416,9 @@ watch(
     props.content?.labelEndDate,
     props.content?.labelScheduleButton,
     props.content?.labelCancelButton,
+    props.content?.labelFromText,
+    props.content?.labelTimePickerConfirm,
+    props.content?.labelTimePickerClose,
     props.content?.placeholder,
     props.content?.labelHours,
     props.content?.labelMinutes,
@@ -1622,19 +1736,33 @@ onMounted(() => {
   gap: 8px;
 }
 
+.datetime-label-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .datetime-label {
   font-size: 14px;
   font-weight: 500;
+  margin: 0;
 }
 
 .datetime-input-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  width: 100%;
   gap: 12px;
+  
+  // When time-input-wrapper has full-width class, it should take 100%
+  .time-input-wrapper.full-width {
+    width: 100%;
+    flex: 1 1 100%;
+  }
 }
 
 .datetime-text {
-  padding: 10px 12px;
+  padding: 6px 12px;
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -1642,6 +1770,7 @@ onMounted(() => {
   border: 1px solid;
   border-style: solid;
   border-radius: 6px;
+  white-space: nowrap;
 }
 
 .datetime-field {
@@ -1732,29 +1861,27 @@ onMounted(() => {
 
 .time-picker-dropdown {
   position: absolute;
-  bottom: calc(100% + 8px);
-  right: 0;
-  z-index: 10000;
+  bottom: 24px;
+  left: auto;
+  right: auto;
+  z-index: 10001;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 12px;
+  padding: 36px 12px 12px 12px;
   background-color: var(--time-container-bg, #ffffff);
   border: 1px solid var(--time-container-border, #e5e7eb);
   border-radius: var(--time-container-radius, 8px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  width: 240px;
-  animation: slideUp 0.2s ease;
+  animation: timePickerFadeIn 0.2s ease;
 }
 
-@keyframes slideUp {
+@keyframes timePickerFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1839,6 +1966,47 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+// ==================== TIME PICKER ACTION BUTTONS ====================
+.time-picker-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 10;
+}
+
+.time-picker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.9);
+  opacity: 0.7;
+  
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+  
+  &:hover {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 // ==================== SPINBOX STYLES ====================
@@ -2039,21 +2207,26 @@ onMounted(() => {
     gap: 10px;
   }
 
+  .datetime-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
   .datetime-label {
     font-size: 15px;
     font-weight: 600;
   }
 
   .datetime-input-row {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 10px;
   }
 
   .datetime-text {
-    padding: 14px 16px;
+    padding: 10px 12px;
     font-size: 15px;
-    min-height: 48px;
-    width: 100%;
+    width: auto;
   }
 
   .time-input-wrapper {
@@ -2074,16 +2247,7 @@ onMounted(() => {
   }
 
   .time-picker-dropdown {
-    position: fixed;
-    left: 50% !important;
-    right: auto !important;
-    bottom: 10px !important;
-    top: auto !important;
-    transform: translateX(-50%);
-    width: 90vw;
-    max-width: 320px;
-    padding: 12px;
-    gap: 8px;
+    padding: 40px 12px 12px 12px;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
@@ -2107,6 +2271,27 @@ onMounted(() => {
   .time-column-separator {
     font-size: 20px;
     padding: 0 8px;
+  }
+
+  .time-picker-actions {
+    top: 10px;
+    right: 10px;
+  }
+
+  .time-picker-btn {
+    width: 32px;
+    height: 32px;
+    touch-action: manipulation;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
 
   .datetime-actions {
@@ -2140,7 +2325,9 @@ onMounted(() => {
   }
 
   .time-picker-dropdown {
-    width: 95vw;
+    left: 12px !important;
+    right: 12px !important;
+    width: calc(100% - 24px);
   }
 
   .datetime-btn {
