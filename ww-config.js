@@ -326,6 +326,39 @@ export default {
       bindable: true,
     },
 
+    inputHoverBorderColor: {
+      label: {
+        en: "Border Color (Hover)",
+        pt: "Cor da Borda (Hover)",
+      },
+      type: "Color",
+      section: "inputStyle",
+      defaultValue: "#4f46e5",
+      bindable: true,
+    },
+
+    inputFocusBorderColor: {
+      label: {
+        en: "Border Color (Focus)",
+        pt: "Cor da Borda (Focus)",
+      },
+      type: "Color",
+      section: "inputStyle",
+      defaultValue: "#4f46e5",
+      bindable: true,
+    },
+
+    inputFocusBoxShadow: {
+      label: {
+        en: "Box Shadow (Focus)",
+        pt: "Sombra (Focus)",
+      },
+      type: "Text",
+      section: "inputStyle",
+      defaultValue: "0 0 0 3px rgba(79, 70, 229, 0.1)",
+      bindable: true,
+    },
+
     inputPadding: {
       label: {
         en: "Padding",
@@ -748,6 +781,95 @@ export default {
       /* wwEditor:end */
     },
 
+    timePickerInputBgColor: {
+      label: {
+        en: "Input Background Color",
+        pt: "Cor de Fundo do Input",
+      },
+      type: "Color",
+      section: "timePickerStyle",
+      defaultValue: "#ffffff",
+      bindable: true,
+    },
+
+    timePickerInputBorderColor: {
+      label: {
+        en: "Input Border Color",
+        pt: "Cor da Borda do Input",
+      },
+      type: "Color",
+      section: "timePickerStyle",
+      defaultValue: "#d1d5db",
+      bindable: true,
+    },
+
+    timePickerInputTextColor: {
+      label: {
+        en: "Input Text Color",
+        pt: "Cor do Texto do Input",
+      },
+      type: "Color",
+      section: "timePickerStyle",
+      defaultValue: "#1f2937",
+      bindable: true,
+    },
+
+    timePickerInputIconColor: {
+      label: {
+        en: "Input Icon Color",
+        pt: "Cor do Ícone do Input",
+      },
+      type: "Color",
+      section: "timePickerStyle",
+      defaultValue: "#6b7280",
+      bindable: true,
+    },
+
+    // ==================== DATE TEXT STYLE ====================
+    dateTextColor: {
+      label: {
+        en: "Date Text Color",
+        pt: "Cor do Texto da Data",
+      },
+      type: "Color",
+      section: "inputStyle",
+      defaultValue: "#1f2937",
+      bindable: true,
+    },
+
+    dateTextBgColor: {
+      label: {
+        en: "Date Text Background",
+        pt: "Fundo do Texto da Data",
+      },
+      type: "Color",
+      section: "inputStyle",
+      defaultValue: "#ffffff",
+      bindable: true,
+    },
+
+    dateTextBorderColor: {
+      label: {
+        en: "Date Text Border Color",
+        pt: "Cor da Borda do Texto da Data",
+      },
+      type: "Color",
+      section: "inputStyle",
+      defaultValue: "#d1d5db",
+      bindable: true,
+    },
+
+    dateTextBorderRadius: {
+      label: {
+        en: "Date Text Border Radius",
+        pt: "Arredondamento do Texto da Data",
+      },
+      type: "Length",
+      section: "inputStyle",
+      defaultValue: "6px",
+      bindable: true,
+    },
+
     // ==================== BUTTON STYLE ====================
     buttonPrimaryBgColor: {
       label: {
@@ -790,6 +912,17 @@ export default {
       type: "Color",
       section: "buttonStyle",
       defaultValue: "#6b7280",
+      bindable: true,
+    },
+
+    buttonSecondaryBorderColor: {
+      label: {
+        en: "Secondary Button Border",
+        pt: "Borda Botão Secundário",
+      },
+      type: "Color",
+      section: "buttonStyle",
+      defaultValue: "#d1d5db",
       bindable: true,
     },
 

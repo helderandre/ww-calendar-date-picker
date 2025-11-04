@@ -134,7 +134,7 @@
                 {{ props.content?.labelStartDate || 'Start date*' }}
               </label>
               <div class="datetime-input-row">
-                <span class="datetime-text" :style="fieldStyle">
+                <span class="datetime-text" :style="dateTextStyle">
                   {{ formattedStartDate }}
                 </span>
                 
@@ -209,7 +209,7 @@
                 {{ isRangeMode ? (props.content?.labelEndDate || 'End date*') : 'End time*' }}
               </label>
               <div class="datetime-input-row">
-                <span v-if="isRangeMode" class="datetime-text" :style="fieldStyle">
+                <span v-if="isRangeMode" class="datetime-text" :style="dateTextStyle">
                   {{ formattedEndDate }}
                 </span>
                 
@@ -557,10 +557,12 @@ const displayText = computed(() => {
   if (!selectedStartDate.value) return '';
 
   const format = props.content?.timeFormat || '12h';
-  const locale = localeCode.value;
 
   const formatDate = (date) => {
-    return date.toLocaleDateString(locale, { month: 'long', day: 'numeric' });
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const formatTime = (timeStr) => {
@@ -597,10 +599,12 @@ const summaryText = computed(() => {
   if (!tempStartDate.value) return '';
 
   const format = props.content?.timeFormat || '12h';
-  const locale = localeCode.value;
 
   const formatDate = (date) => {
-    return date.toLocaleDateString(locale, { month: 'long', day: 'numeric' });
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const formatTime = (timeStr) => {
@@ -648,6 +652,9 @@ const inputStyle = computed(() => ({
   boxShadow: props.content?.inputBoxShadow || '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
   gap: props.content?.inputGap || '12px',
   '--placeholder-color': props.content?.inputPlaceholderColor || '#9ca3af',
+  '--hover-border-color': props.content?.inputHoverBorderColor || '#4f46e5',
+  '--focus-border-color': props.content?.inputFocusBorderColor || '#4f46e5',
+  '--focus-box-shadow': props.content?.inputFocusBoxShadow || '0 0 0 3px rgba(79, 70, 229, 0.1)',
 }));
 
 const iconStyle = computed(() => ({
@@ -685,8 +692,19 @@ const labelStyle = computed(() => ({
 }));
 
 const fieldStyle = computed(() => ({
-  borderColor: props.content?.inputBorderColor || '#d1d5db',
+  borderColor: props.content?.timePickerInputBorderColor || '#d1d5db',
   borderRadius: props.content?.inputBorderRadius || '8px',
+  fontSize: props.content?.inputFontSize || '14px',
+  backgroundColor: props.content?.timePickerInputBgColor || '#ffffff',
+  color: props.content?.timePickerInputTextColor || '#1f2937',
+  '--icon-color': props.content?.timePickerInputIconColor || '#6b7280',
+}));
+
+const dateTextStyle = computed(() => ({
+  color: props.content?.dateTextColor || '#1f2937',
+  backgroundColor: props.content?.dateTextBgColor || '#ffffff',
+  borderColor: props.content?.dateTextBorderColor || '#d1d5db',
+  borderRadius: props.content?.dateTextBorderRadius || '6px',
   fontSize: props.content?.inputFontSize || '14px',
 }));
 
@@ -711,6 +729,7 @@ const secondaryButtonStyle = computed(() => ({
   height: props.content?.buttonHeight || '40px',
   fontSize: props.content?.buttonFontSize || '14px',
   fontWeight: props.content?.buttonFontWeight || 500,
+  borderColor: props.content?.buttonSecondaryBorderColor || '#d1d5db',
 }));
 
 // ==================== COMPUTED - SPINBOX STYLES (MANDATORY REACTIVITY) ====================
@@ -1214,6 +1233,13 @@ watch(
     props.content?.inputIconColor,
     props.content?.inputIconSize,
     props.content?.inputGap,
+    props.content?.inputHoverBorderColor,
+    props.content?.inputFocusBorderColor,
+    props.content?.inputFocusBoxShadow,
+    props.content?.dateTextColor,
+    props.content?.dateTextBgColor,
+    props.content?.dateTextBorderColor,
+    props.content?.dateTextBorderRadius,
     // TIME PICKER properties (CRITICAL: Must watch for reactivity)
     props.content?.spinboxGap,
     props.content?.spinboxLabelColor,
@@ -1226,6 +1252,10 @@ watch(
     props.content?.spinboxValueFontWeight,
     props.content?.spinboxIconColor,
     props.content?.timePickerDisabledColor,
+    props.content?.timePickerInputBgColor,
+    props.content?.timePickerInputBorderColor,
+    props.content?.timePickerInputTextColor,
+    props.content?.timePickerInputIconColor,
     props.content?.labelHours,
     props.content?.labelMinutes,
     props.content?.dropdownBackgroundColor,
@@ -1247,6 +1277,7 @@ watch(
     props.content?.buttonPrimaryTextColor,
     props.content?.buttonSecondaryBgColor,
     props.content?.buttonSecondaryTextColor,
+    props.content?.buttonSecondaryBorderColor,
     props.content?.buttonBorderRadius,
     props.content?.buttonHeight,
     props.content?.buttonFontSize,
@@ -1315,12 +1346,13 @@ onMounted(() => {
   user-select: none;
 
   &:hover {
-    opacity: 0.9;
+    border-color: var(--hover-border-color) !important;
   }
 
   &:focus {
-    outline: 2px solid var(--primary-color, #4f46e5);
-    outline-offset: 2px;
+    border-color: var(--focus-border-color) !important;
+    box-shadow: var(--focus-box-shadow) !important;
+    outline: none;
   }
 }
 
@@ -1496,10 +1528,12 @@ onMounted(() => {
 .datetime-text {
   padding: 10px 12px;
   font-size: 14px;
-  color: inherit;
   display: flex;
   align-items: center;
   font-weight: 500;
+  border: 1px solid;
+  border-style: solid;
+  border-radius: 6px;
 }
 
 .datetime-field {
@@ -1554,7 +1588,6 @@ onMounted(() => {
   border: 1px solid;
   border-style: solid;
   font-size: 14px;
-  background-color: white;
   border-radius: 6px;
   transition: all 0.2s ease;
   outline: none;
@@ -1581,7 +1614,7 @@ onMounted(() => {
 
 .time-input-chevron {
   flex-shrink: 0;
-  color: #6b7280;
+  color: var(--icon-color, #6b7280);
   transition: transform 0.2s ease;
   
   &.is-open {
@@ -1830,7 +1863,8 @@ onMounted(() => {
 }
 
 .datetime-btn-secondary {
-  border: 1px solid #e5e7eb;
+  border: 1px solid;
+  border-style: solid;
 }
 
 @keyframes slideDown {
