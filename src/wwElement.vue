@@ -140,7 +140,7 @@
               </div>
               
               <!-- Time Input with Dropdown -->
-              <div class="datetime-input-row">
+              <div v-if="canShowTimeInputs" class="datetime-input-row">
                 <div class="time-input-wrapper full-width">
                   <button
                     type="button"
@@ -244,7 +244,7 @@
               </div>
               
               <!-- Time Input with Dropdown -->
-              <div class="datetime-input-row">
+              <div v-if="canShowTimeInputs" class="datetime-input-row">
                 <div class="time-input-wrapper full-width">
                   <button
                     type="button"
@@ -358,6 +358,8 @@
             <button
               class="datetime-btn datetime-btn-primary"
               :style="primaryButtonStyle"
+              :class="{ 'is-disabled': !canSchedule }"
+              :disabled="!canSchedule"
               @click="handleSchedule"
               type="button"
             >
@@ -701,6 +703,24 @@ const summaryText = computed(() => {
     const dateStr = formatDate(tempStartDate.value);
     return `${dateStr}, ${fromText} ${startTimeFormatted} - ${endTimeFormatted}`;
   }
+});
+
+// ==================== COMPUTED - VALIDATION ====================
+const canShowTimeInputs = computed(() => {
+  if (isRangeMode.value) {
+    // Range mode: both start and end dates must be selected
+    return !!(tempStartDate.value && tempEndDate.value);
+  } else {
+    // Single mode: only start date needs to be selected
+    return !!tempStartDate.value;
+  }
+});
+
+const canSchedule = computed(() => {
+  if (!tempStartTime.value || !tempEndTime.value) return false;
+  if (!tempStartDate.value) return false;
+  if (isRangeMode.value && !tempEndDate.value) return false;
+  return true;
 });
 
 // ==================== COMPUTED - STYLES (MANDATORY REACTIVITY) ====================
@@ -2110,13 +2130,20 @@ onMounted(() => {
   transition: all 0.2s ease;
   flex: 1;
 
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.9;
     transform: translateY(-1px);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: translateY(0);
+  }
+
+  &:disabled,
+  &.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 
