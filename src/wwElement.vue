@@ -342,6 +342,12 @@ const isEndTimePickerOpen = ref(false);
 const startTimePickerRef = ref(null);
 const endTimePickerRef = ref(null);
 
+// Track hour/minute selection (to close only when both are selected)
+const startTimeHourSelected = ref(false);
+const startTimeMinuteSelected = ref(false);
+const endTimeHourSelected = ref(false);
+const endTimeMinuteSelected = ref(false);
+
 // Calendar state
 const currentDate = ref(new Date());
 const selectedStartDate = ref(null);
@@ -790,13 +796,32 @@ const getTimeOptionStyle = (isSelected, isDisabled = false) => {
   };
 };
 
-// Check if end time is disabled (before or equal to start time)
+// Check if end time is disabled (before or equal to start time) - ONLY ON SAME DAY
 const isEndTimeDisabled = (hour, minute) => {
   if (!isRangeMode.value) return false;
   
   const startTimeValue = tempStartTime.value || startTime.value;
   if (!startTimeValue) return false;
   
+  // Get the selected dates
+  const startDate = tempStartDate.value || selectedStartDate.value;
+  const endDate = tempEndDate.value || selectedEndDate.value;
+  
+  // If no dates selected, no restrictions
+  if (!startDate || !endDate) return false;
+  
+  // Only restrict times if both dates are on the same day
+  const isSameDay = 
+    startDate.getFullYear() === endDate.getFullYear() &&
+    startDate.getMonth() === endDate.getMonth() &&
+    startDate.getDate() === endDate.getDate();
+  
+  if (!isSameDay) {
+    // Different days - all times are available
+    return false;
+  }
+  
+  // Same day - end time must be after start time
   const [startHour, startMinute] = startTimeValue.split(':').map(Number);
   const startTimeInMinutes = startHour * 60 + startMinute;
   const checkTimeInMinutes = parseInt(hour) * 60 + parseInt(minute);
@@ -996,6 +1021,9 @@ const toggleStartTimePicker = () => {
   isStartTimePickerOpen.value = !isStartTimePickerOpen.value;
   if (isStartTimePickerOpen.value) {
     isEndTimePickerOpen.value = false;
+    // Reset selection tracking when opening
+    startTimeHourSelected.value = false;
+    startTimeMinuteSelected.value = false;
   }
 };
 
@@ -1003,57 +1031,120 @@ const toggleEndTimePicker = () => {
   isEndTimePickerOpen.value = !isEndTimePickerOpen.value;
   if (isEndTimePickerOpen.value) {
     isStartTimePickerOpen.value = false;
+    // Reset selection tracking when opening
+    endTimeHourSelected.value = false;
+    endTimeMinuteSelected.value = false;
   }
 };
 
 const selectStartTime = (hour, minute) => {
+  const currentHour = tempStartTime.value?.split(':')[0] || startTime.value.split(':')[0];
+  const currentMinute = tempStartTime.value?.split(':')[1] || startTime.value.split(':')[1];
+  
+  // Track what was selected
+  if (hour !== currentHour) {
+    startTimeHourSelected.value = true;
+  }
+  if (minute !== currentMinute) {
+    startTimeMinuteSelected.value = true;
+  }
+  
   const newTime = `${hour}:${minute}`;
   tempStartTime.value = newTime;
   startTime.value = newTime;
   
-  // Validate end time is after start time
+  // Validate end time is after start time (only on same day)
   if (isRangeMode.value) {
-    const startTimeInMinutes = parseInt(hour) * 60 + parseInt(minute);
-    const [endHour, endMinute] = (tempEndTime.value || endTime.value).split(':').map(Number);
-    const endTimeInMinutes = endHour * 60 + endMinute;
+    const startDate = tempStartDate.value || selectedStartDate.value;
+    const endDate = tempEndDate.value || selectedEndDate.value;
     
-    if (endTimeInMinutes <= startTimeInMinutes) {
-      // Set end time to next available slot
-      const startIndex = timeOptions.value.findIndex(t => t.value === newTime);
-      const nextTime = timeOptions.value[startIndex + 1]?.value;
-      if (nextTime) {
-        endTime.value = nextTime;
-        tempEndTime.value = nextTime;
+    // Only validate if same day
+    if (startDate && endDate) {
+      const isSameDay = 
+        startDate.getFullYear() === endDate.getFullYear() &&
+        startDate.getMonth() === endDate.getMonth() &&
+        startDate.getDate() === endDate.getDate();
+      
+      if (isSameDay) {
+        const startTimeInMinutes = parseInt(hour) * 60 + parseInt(minute);
+        const [endHour, endMinute] = (tempEndTime.value || endTime.value).split(':').map(Number);
+        const endTimeInMinutes = endHour * 60 + endMinute;
+        
+        if (endTimeInMinutes <= startTimeInMinutes) {
+          // Set end time to next available slot
+          const startIndex = timeOptions.value.findIndex(t => t.value === newTime);
+          const nextTime = timeOptions.value[startIndex + 1]?.value;
+          if (nextTime) {
+            endTime.value = nextTime;
+            tempEndTime.value = nextTime;
+          }
+        }
       }
     }
   }
   
   handleTimeChange('start');
-  // Close dropdown after selecting both hour and minute
-  isStartTimePickerOpen.value = false;
+  
+  // Close time picker only if BOTH hour and minute were selected
+  if (startTimeHourSelected.value && startTimeMinuteSelected.value) {
+    isStartTimePickerOpen.value = false;
+    // Reset tracking
+    startTimeHourSelected.value = false;
+    startTimeMinuteSelected.value = false;
+  }
 };
 
 const selectEndTime = (hour, minute) => {
+  const currentHour = tempEndTime.value?.split(':')[0] || endTime.value.split(':')[0];
+  const currentMinute = tempEndTime.value?.split(':')[1] || endTime.value.split(':')[1];
+  
+  // Track what was selected
+  if (hour !== currentHour) {
+    endTimeHourSelected.value = true;
+  }
+  if (minute !== currentMinute) {
+    endTimeMinuteSelected.value = true;
+  }
+  
   const newTime = `${hour}:${minute}`;
   
-  // Validate end time is after start time in Range Mode
+  // Validate end time is after start time in Range Mode (only on same day)
   if (isRangeMode.value) {
-    const startTimeValue = tempStartTime.value || startTime.value;
-    const [startHour, startMinute] = startTimeValue.split(':').map(Number);
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const newTimeInMinutes = parseInt(hour) * 60 + parseInt(minute);
+    const startDate = tempStartDate.value || selectedStartDate.value;
+    const endDate = tempEndDate.value || selectedEndDate.value;
     
-    if (newTimeInMinutes <= startTimeInMinutes) {
-      // Don't allow selecting time before or equal to start time
-      return;
+    // Only validate if same day
+    if (startDate && endDate) {
+      const isSameDay = 
+        startDate.getFullYear() === endDate.getFullYear() &&
+        startDate.getMonth() === endDate.getMonth() &&
+        startDate.getDate() === endDate.getDate();
+      
+      if (isSameDay) {
+        const startTimeValue = tempStartTime.value || startTime.value;
+        const [startHour, startMinute] = startTimeValue.split(':').map(Number);
+        const startTimeInMinutes = startHour * 60 + startMinute;
+        const newTimeInMinutes = parseInt(hour) * 60 + parseInt(minute);
+        
+        if (newTimeInMinutes <= startTimeInMinutes) {
+          // Don't allow selecting time before or equal to start time on same day
+          return;
+        }
+      }
     }
   }
   
   tempEndTime.value = newTime;
   endTime.value = newTime;
   handleTimeChange('end');
-  // Close dropdown after selecting both hour and minute
-  isEndTimePickerOpen.value = false;
+  
+  // Close time picker only if BOTH hour and minute were selected
+  if (endTimeHourSelected.value && endTimeMinuteSelected.value) {
+    isEndTimePickerOpen.value = false;
+    // Reset tracking
+    endTimeHourSelected.value = false;
+    endTimeMinuteSelected.value = false;
+  }
 };
 
 const toggleDropdown = () => {
@@ -1298,29 +1389,50 @@ onMounted(() => {
     currentDate.value = new Date(now.getFullYear(), now.getMonth(), 1);
   }
 
-  // Close dropdown when clicking outside
+  // Handle clicks - dropdown only closes on Cancel/Schedule buttons or main input
   const handleClickOutside = (event) => {
     if (!dropdownRef.value) return;
     
+    // Check if click is on main input (to toggle)
+    const mainInput = event.target.closest('.datetime-input');
+    if (mainInput) {
+      // Let toggleDropdown handle this
+      return;
+    }
+    
+    // Check if click is on Cancel or Schedule buttons
+    const isCancelButton = event.target.closest('.datetime-btn-secondary');
+    const isScheduleButton = event.target.closest('.datetime-btn-primary');
+    if (isCancelButton || isScheduleButton) {
+      // Let button handlers handle this
+      return;
+    }
+    
+    // Check if click is inside dropdown - if yes, DON'T close main dropdown
     const pickerWrapper = dropdownRef.value.closest('.datetime-picker-wrapper');
-    if (pickerWrapper && !pickerWrapper.contains(event.target)) {
-      closeDropdown();
+    if (pickerWrapper && pickerWrapper.contains(event.target)) {
+      // Click inside dropdown - don't close main dropdown
+      
+      // But close time pickers when clicking outside their specific areas
+      if (startTimePickerRef.value && !startTimePickerRef.value.contains(event.target)) {
+        const startButton = event.target.closest('.time-input-wrapper .time-input-button');
+        if (!startButton || !startButton.parentElement?.contains(startTimePickerRef.value)) {
+          isStartTimePickerOpen.value = false;
+        }
+      }
+      
+      if (endTimePickerRef.value && !endTimePickerRef.value.contains(event.target)) {
+        const endButton = event.target.closest('.time-input-wrapper .time-input-button');
+        if (!endButton || !endButton.parentElement?.contains(endTimePickerRef.value)) {
+          isEndTimePickerOpen.value = false;
+        }
+      }
+      
+      return;
     }
     
-    // Close time pickers when clicking outside
-    if (startTimePickerRef.value && !startTimePickerRef.value.contains(event.target)) {
-      const startButton = event.target.closest('.time-input-wrapper .time-input-button');
-      if (!startButton || !startButton.parentElement.contains(startTimePickerRef.value)) {
-        isStartTimePickerOpen.value = false;
-      }
-    }
-    
-    if (endTimePickerRef.value && !endTimePickerRef.value.contains(event.target)) {
-      const endButton = event.target.closest('.time-input-wrapper .time-input-button');
-      if (!endButton || !endButton.parentElement.contains(endTimePickerRef.value)) {
-        isEndTimePickerOpen.value = false;
-      }
-    }
+    // Click outside entire component - close main dropdown
+    closeDropdown();
   };
 
   document.addEventListener('click', handleClickOutside);
@@ -1398,11 +1510,7 @@ onMounted(() => {
   animation: slideDown 0.2s ease;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 
-  @media (max-width: 640px) {
-    left: 0;
-    right: 0;
-    max-width: 100vw;
-  }
+  // Mobile styles now handled in comprehensive mobile section below
 }
 
 .calendar-section {
@@ -1814,28 +1922,7 @@ onMounted(() => {
   color: #333;
 }
 
-@media (max-width: 640px) {
-  .time-picker-dropdown {
-    flex-direction: row;
-    padding: 8px;
-    bottom: calc(100% + 8px);
-    right: 0;
-    width: 220px;
-  }
-  
-  .time-column {
-    flex: 1;
-  }
-  
-  .time-column-scroll {
-    max-height: 140px;
-  }
-  
-  .time-option {
-    padding: 6px 4px;
-    font-size: 12px;
-  }
-}
+// Mobile styles now handled in comprehensive mobile section below
 
 .datetime-actions {
   display: flex;
@@ -1878,17 +1965,199 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 640px) {
+// ==================== MOBILE OPTIMIZATIONS ====================
+@media (max-width: 768px) {
+  .datetime-picker-wrapper {
+    width: 100%;
+  }
+
+  .datetime-input {
+    font-size: 14px;
+    padding: 12px 14px;
+    touch-action: manipulation;
+  }
+
   .datetime-dropdown {
-    max-width: 95vw;
+    position: fixed;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0;
+    max-width: 100vw;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+    animation: slideUp 0.3s ease;
+    padding: 16px;
+    gap: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-section {
+    gap: 12px;
+  }
+
+  .calendar-header {
+    padding: 8px 0;
+  }
+
+  .calendar-title {
+    font-size: 18px;
+  }
+
+  .calendar-nav-btn {
+    padding: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  .calendar-weekday {
+    font-size: 11px;
+    padding: 6px 2px;
+  }
+
+  .calendar-day {
+    font-size: 15px;
+    min-height: 44px;
+    padding: 8px;
+    
+    &:not(:disabled) {
+      min-width: 44px; // Better touch target
+    }
+  }
+
+  .datetime-inputs {
+    gap: 20px;
+  }
+
+  .datetime-input-group {
+    gap: 10px;
+  }
+
+  .datetime-label {
+    font-size: 15px;
+    font-weight: 600;
   }
 
   .datetime-input-row {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .datetime-text {
+    padding: 14px 16px;
+    font-size: 15px;
+    min-height: 48px;
+    width: 100%;
+  }
+
+  .time-input-wrapper {
+    width: 100%;
+    
+    &.full-width {
+      grid-column: 1;
+    }
+  }
+
+  .time-input-button {
+    min-width: 100%;
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 15px;
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .time-picker-dropdown {
+    position: fixed;
+    left: 50% !important;
+    right: auto !important;
+    bottom: 10px !important;
+    top: auto !important;
+    transform: translateX(-50%);
+    width: 90vw;
+    max-width: 320px;
+    padding: 12px;
+    gap: 8px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .time-column-label {
+    font-size: 12px;
+    padding: 8px 4px;
+  }
+
+  .time-column-scroll {
+    max-height: 180px;
+  }
+
+  .time-option {
+    padding: 12px 8px;
+    font-size: 15px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .time-column-separator {
+    font-size: 20px;
+    padding: 0 8px;
   }
 
   .datetime-actions {
-    flex-direction: column-reverse;
+    flex-direction: row;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .datetime-btn {
+    min-height: 48px;
+    font-size: 16px;
+    border-radius: 10px;
+    touch-action: manipulation;
+  }
+}
+
+// ==================== SMALL MOBILE (< 380px) ====================
+@media (max-width: 380px) {
+  .datetime-dropdown {
+    padding: 12px;
+    gap: 16px;
+  }
+
+  .calendar-day {
+    font-size: 14px;
+    min-height: 40px;
+  }
+
+  .calendar-weekday {
+    font-size: 10px;
+  }
+
+  .time-picker-dropdown {
+    width: 95vw;
+  }
+
+  .datetime-btn {
+    min-height: 44px;
+    font-size: 15px;
+  }
+}
+
+// Animation for mobile slide up
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>
