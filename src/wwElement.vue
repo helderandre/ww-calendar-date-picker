@@ -764,6 +764,9 @@ const fieldStyle = computed(() => ({
   backgroundColor: props.content?.timePickerInputBgColor || '#ffffff',
   color: props.content?.timePickerInputTextColor || '#1f2937',
   '--icon-color': props.content?.timePickerInputIconColor || '#6b7280',
+  '--hover-border-color': props.content?.inputHoverBorderColor || '#4f46e5',
+  '--focus-border-color': props.content?.inputFocusBorderColor || '#4f46e5',
+  '--focus-box-shadow': props.content?.inputFocusBoxShadow || '0 0 0 3px rgba(79, 70, 229, 0.1)',
 }));
 
 const dateTextStyle = computed(() => ({
@@ -1835,12 +1838,12 @@ onMounted(() => {
   gap: 8px;
 
   &:hover {
-    border-color: var(--primary-color, #4f46e5);
+    border-color: var(--hover-border-color) !important;
   }
 
   &:focus {
-    border-color: var(--primary-color, #4f46e5);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    border-color: var(--focus-border-color) !important;
+    box-shadow: var(--focus-box-shadow) !important;
   }
   
   span {
